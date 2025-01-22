@@ -12,13 +12,13 @@ struct ContentView: View {
                         .ignoresSafeArea()
                     
                     ZStack(alignment: .topLeading) {
-                     //   NavigationLink(destination: settingsView().navigationBarBackButtonHidden(true)) {
-                      //      Image(systemName: "gearshape")
-                      //          .font(.system(size: 30))
-                      //          .fontWeight(.heavy)
-                      //          .foregroundStyle(.white)
-                      //          .padding()
-                     //   }
+                       NavigationLink(destination: settingsView().navigationBarBackButtonHidden(true)) {
+                        Image(systemName: "gearshape")
+                            .font(.system(size: 30))
+                            .fontWeight(.heavy)
+                            .foregroundStyle(.white)
+                            .padding()
+                        }
                                 VStack {
                                     HStack {
                                         Spacer()
@@ -123,7 +123,13 @@ struct infoView: View {
     }
 }
 
+
 struct settingsView: View {
+    
+    @State var isDarkModeEnabled: Bool = true
+    @State var isTimerEnabled: Bool = false
+    @State var downloadViaWifiEnabled: Bool = false
+    
     var body: some View {
         NavigationStack {
             ZStack {
@@ -147,20 +153,69 @@ struct settingsView: View {
                             }
                         }
                 VStack {
+
+                    Section(header: Text("PREFERENCES").foregroundColor(.white)) {
+
+                        HStack {
+                            Image(systemName: "globe")
+                                .foregroundColor(.blue) // Kolor ikony
+                            Toggle(isOn: $isDarkModeEnabled) {
+                                Text("Language")
+                            }
+                        }
                     
-                        Text("Tu będą ustawienia")
-                            .foregroundStyle(.pink)
+                        HStack {
+                            Image(systemName: "gearshape")
+                                .foregroundColor(.purple) // Kolor ikony
+                            Toggle(isOn: $isDarkModeEnabled) {
+                                Text("Dark Mode")
+                            }
+                        }
+                        
+                    }
+                    
+                    
+                    
+                    Section(header: Text("TIMER SETTINGS").foregroundColor(.white)) {
+                        
+                        
+                        HStack {
+                            Image(systemName: "timer")
+                                .foregroundColor(.red) // Kolor ikony
+                            Toggle(isOn: $isTimerEnabled) {
+                                Text("Timer")
+                            }
+                        }
+                        
+                        
+                        HStack {
+                            Image(systemName: "timer")
+                                .foregroundColor(.red) // Kolor ikony
+                            Toggle(isOn: $isTimerEnabled) {
+                                Text("Timer")
+                            }
+                        }
+
+                    }
+                                    
+                    
+                        
+                    
                     
                 }.font(.system(size: 25))
-                    .fontWeight(.heavy)
+                    .fontWeight(.bold)
                     .foregroundStyle(.white)
                     .padding()
                 
                 
             }
         }
+
+        
     }
 }
+
+
 
 extension AnyTransition {
     static var flipFromRight: AnyTransition {
@@ -200,6 +255,12 @@ struct FlipEffect: ViewModifier {
                 axis: (x: 0, y: 1, z: 0),
                 perspective: 0.5
             )
+    }
+}
+
+struct LineBreak: View {
+    var body: some View {
+        Spacer().frame(height: 10) // Odstęp w wysokości 10 punktów
     }
 }
 
