@@ -126,9 +126,9 @@ struct infoView: View {
 
 struct settingsView: View {
     
-    @State var isDarkModeEnabled: Bool = true
-    @State var isTimerEnabled: Bool = false
-    @State var downloadViaWifiEnabled: Bool = false
+    @AppStorage("isDarkModeEnabled") var isDarkModeEnabled: Bool = true
+    @AppStorage("isTimerEnabled") var isTimerEnabled: Bool = false
+    @AppStorage("selectedTime") var selectedTime: Int = 30
     
     var body: some View {
         NavigationStack {
@@ -144,74 +144,34 @@ struct settingsView: View {
                             .foregroundStyle(.white)
                             .padding()
                     }
-                            VStack {
-                                HStack {
-                                    Spacer()
-                                    //
+                    VStack {
+                        Section(header: Text("TIMER SETTINGS").foregroundColor(.white)) {
+                            HStack {
+                                Image(systemName: "timer")
+                                    .foregroundColor(.red) // Ikona
+                                Toggle(isOn: $isTimerEnabled) {
+                                    Text("Enable Timer") // Przełącznik włączania licznika
                                 }
-                                Spacer()
+                            }
+                            if isTimerEnabled { // Jeśli timer jest włączony, pokaż menu wyboru czasu
+                                Menu("Select Time: \(selectedTime) seconds") {
+                                    Button("15 seconds") { selectedTime = 15 }
+                                    Button("30 seconds") { selectedTime = 30 }
+                                    Button("1 minute") { selectedTime = 60 }
+                                    Button("3 minutes") { selectedTime = 180 }
+                                }
+                                .foregroundStyle(.white)
+                                .padding()
                             }
                         }
-                VStack {
-
-                    Section(header: Text("PREFERENCES").foregroundColor(.white)) {
-
-                        HStack {
-                            Image(systemName: "globe")
-                                .foregroundColor(.blue) // Kolor ikony
-                            Toggle(isOn: $isDarkModeEnabled) {
-                                Text("Language")
-                            }
-                        }
-                    
-                        HStack {
-                            Image(systemName: "gearshape")
-                                .foregroundColor(.purple) // Kolor ikony
-                            Toggle(isOn: $isDarkModeEnabled) {
-                                Text("Dark Mode")
-                            }
-                        }
-                        
                     }
-                    
-                    
-                    
-                    Section(header: Text("TIMER SETTINGS").foregroundColor(.white)) {
-                        
-                        
-                        HStack {
-                            Image(systemName: "timer")
-                                .foregroundColor(.red) // Kolor ikony
-                            Toggle(isOn: $isTimerEnabled) {
-                                Text("Timer")
-                            }
-                        }
-                        
-                        
-                        HStack {
-                            Image(systemName: "timer")
-                                .foregroundColor(.red) // Kolor ikony
-                            Toggle(isOn: $isTimerEnabled) {
-                                Text("Timer")
-                            }
-                        }
-
-                    }
-                                    
-                    
-                        
-                    
-                    
-                }.font(.system(size: 25))
+                    .font(.system(size: 25))
                     .fontWeight(.bold)
                     .foregroundStyle(.white)
                     .padding()
-                
-                
+                }
             }
         }
-
-        
     }
 }
 

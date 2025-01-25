@@ -103,34 +103,71 @@ struct QuestView: View {
     let content: String
     let potemToZmienie: String
 
+    @AppStorage("selectedTime") var selectedTime: Int = 30
+    @State private var timeRemaining: Int = 0
+    @State private var timerRunning: Bool = false
+    @AppStorage("isTimerEnabled") var isTimerEnabled: Bool = false
+
+    @State private var fixedContent: String?  // Nowa zmienna do przechowywania treści pytania/wyzwania
+
     var body: some View {
-            
-            NavigationStack {
-                ZStack {
-                    themeColor
-                        .ignoresSafeArea()
-                    
-                    VStack {
-                        Text(content)
-                            .font(.largeTitle)
+        NavigationStack {
+            ZStack {
+                themeColor
+                    .ignoresSafeArea()
+
+                VStack(spacing: 20) {
+                    if isTimerEnabled {
+                        Text("\(timeRemaining) s")
+                            .font(.title2)
                             .fontWeight(.bold)
                             .foregroundColor(.white)
-                            .padding()
-                        
-                        NavigationLink(destination: PlayView(selectedOption: potemToZmienie, categories: loadGameData()?.categories ?? []).navigationBarBackButtonHidden(true)) {
-                            Text("Next")
-                                .foregroundStyle(.white)
-                                .font(.title)
-                                .fontWeight(.heavy)
-                                .frame(width: 120, height: 70)
-                                .foregroundColor(.white)
-                                .background(Color(red: 66 / 255, green: 66 / 255, blue: 66 / 255))
-                                .cornerRadius(30)
-                        }
+                    }
+
+                    Text(fixedContent ?? content) // Używamy zapamiętanej wartości
+                        .font(.largeTitle)
+                        .fontWeight(.bold)
+                        .foregroundColor(.white)
+                        .padding()
+
+                    NavigationLink(destination: PlayView(selectedOption: potemToZmienie, categories: loadGameData()?.categories ?? []).navigationBarBackButtonHidden(true)) {
+                        Text("Next")
+                            .foregroundStyle(.white)
+                            .font(.title)
+                            .fontWeight(.heavy)
+                            .frame(width: 120, height: 70)
+                            .background(Color(red: 66 / 255, green: 66 / 255, blue: 66 / 255))
+                            .cornerRadius(30)
                     }
                 }
             }
-        
+            .onAppear {
+                if fixedContent == nil { // Zapisujemy treść tylko raz!
+                    fixedContent = content
+                }
+                timeRemaining = selectedTime
+                startTimer()
+            }
+            .onDisappear {
+                stopTimer()
+            }
+        }
+    }
+
+    private func startTimer() {
+        timerRunning = true
+        Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { timer in
+            if timeRemaining > 0 {
+                timeRemaining -= 1
+            } else {
+                timer.invalidate()
+                timerRunning = false
+            }
+        }
+    }
+
+    private func stopTimer() {
+        timerRunning = false
     }
 }
 
