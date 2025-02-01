@@ -1,6 +1,6 @@
 import SwiftUI
 
-
+// Kolor tła aplikacji
 let backgroundColor = Color(red: 66 / 255, green: 66 / 255, blue: 66 / 255)
 
 struct ContentView: View {
@@ -8,58 +8,45 @@ struct ContentView: View {
         if let gameData = loadGameData() {
             NavigationStack {
                 ZStack {
-                    backgroundColor
-                        .ignoresSafeArea()
+                    backgroundColor.ignoresSafeArea()
                     
-                    ZStack(alignment: .topLeading) {
-                       NavigationLink(destination: settingsView().navigationBarBackButtonHidden(true)) {
-                        Image(systemName: "gearshape")
-                            .font(.system(size: 30))
-                            .fontWeight(.heavy)
-                            .foregroundStyle(.white)
-                            .padding()
-                        }
-                                VStack {
-                                    HStack {
-                                        Spacer()
-                                        NavigationLink(destination: infoView().navigationBarBackButtonHidden(true)) {
-                                            Image(systemName: "info.circle")
-                                                .font(.system(size: 30))
-                                                .fontWeight(.heavy)
-                                                .foregroundStyle(.white)
-                                                .padding()
-                                        }
-                                    }
-                                    Spacer()
-                                }
-                            }
-                    
-                    VStack(spacing: 150) {
-                        
+                    VStack(spacing: 80) {
                         HStack {
                             Text("Butelka")
                                 .foregroundStyle(.white)
-                            
                             Image(systemName: "party.popper")
                                 .foregroundStyle(.pink)
                         }
-                        .font(.system(size: 50))
-                        .fontWeight(.heavy)
+                        .font(.system(size: 50, weight: .heavy))
                         
                         VStack {
+                            // Generowanie kategorii z pliku JSON
                             ForEach(gameData.categories, id: \.name) { category in
-                                NavigationLink(destination: PlayView(selectedOption: category.name, categories: gameData.categories).navigationBarBackButtonHidden(true)) {
-                                    Text(category.name)
-                                        .foregroundStyle(.white)
-                                        .font(.largeTitle)
-                                        .fontWeight(.heavy)
-                                        .frame(width: 300, height: 100)
-                                        .foregroundColor(.white)
-                                        .background(.pink)
-                                        .cornerRadius(30)
+                                CategoryButton(title: category.name, color: .pink) {
+                                    PlayView(selectedOption: category.name, categories: gameData.categories)
                                 }
                             }
+                            
+                            // Tymczasowy przycisk dla "Never Have I Ever"
+                            CategoryButton(title: "Never have I ever", color: .blue) {
+                                settingsView()
+                            }
                         }
+                    }
+                    
+                    // Ikony ustawień i informacji
+                    VStack {
+                        HStack {
+                            NavigationLink(destination: settingsView().navigationBarBackButtonHidden(true)) {
+                                IconButton(systemName: "gearshape")
+                            }
+                            Spacer()
+                            NavigationLink(destination: infoView().navigationBarBackButtonHidden(true)) {
+                                IconButton(systemName: "info.circle")
+                            }
+                        }
+                        .padding()
+                        Spacer()
                     }
                 }
             }
@@ -71,55 +58,81 @@ struct ContentView: View {
     }
 }
 
+// Komponent ikony
+struct IconButton: View {
+    let systemName: String
+    var body: some View {
+        Image(systemName: systemName)
+            .font(.system(size: 30, weight: .heavy))
+            .foregroundStyle(.white)
+    }
+}
+
+// Komponent przycisku kategorii
+struct CategoryButton<Destination: View>: View {
+    let title: String
+    let color: Color
+    let destination: () -> Destination
+    
+    var body: some View {
+        NavigationLink(destination: destination().navigationBarBackButtonHidden(true)) {
+            Text(title)
+                .font(.largeTitle.bold())
+                .frame(width: 300, height: 100)
+                .background(color)
+                .foregroundColor(.white)
+                .cornerRadius(30)
+        }
+    }
+}
+
+// Widok informacji
 struct infoView: View {
     var body: some View {
         NavigationStack {
             ZStack {
-                backgroundColor
-                    .ignoresSafeArea()
-                
-                ZStack(alignment: .topLeading) {
-                    NavigationLink(destination: ContentView().navigationBarBackButtonHidden(true)) {
-                        Image(systemName: "xmark")
-                            .font(.system(size: 30))
-                            .fontWeight(.heavy)
-                            .foregroundStyle(.white)
-                            .padding()
+                backgroundColor.ignoresSafeArea()
+                VStack(alignment: .leading){
+                    HStack {
+                        CloseButton()
+                        Text("Settings")
+                            .font(.title.bold())
+                            .foregroundColor(.white)
+                        Spacer()
+                            .ignoresSafeArea()
                     }
-                            VStack {
-                                HStack {
-                                    Spacer()
-                                    //
-                                }
-                                Spacer()
-                            }
-                        }
-                VStack {
+
+                    Text("Zboczone").foregroundStyle(.pink)
+                    Text("To kategoria dla raczej singli i jest ona dość mocno zboczona.")
                     
-                        Text("Freaky")
-                            .foregroundStyle(.pink)
-                        
-                        Text("To kategoria dla raczej singli i jest ona dość mocno zboczona.  ")
-                    
-                    Text("Freaky")
-                        .foregroundStyle(.pink)
-                    
-                    Text("To kategoria dla raczej singli i jest ona dość mocno zboczona.  ")
-                    
-                    
-                    Text("Freaky")
-                        .foregroundStyle(.pink)
-                    
-                    Text("To kategoria dla raczej singli i jest ona dość mocno zboczona.  ")
-                    
-                }.font(.system(size: 25))
-                    .fontWeight(.heavy)
-                    .foregroundStyle(.white)
-                    .padding()
+                    Text("Uczuciowe").foregroundStyle(.pink)
+                    Text("To kategoria dla raczej singli i jest ona dość mocno zboczona.")
+
+                    Text("Zabawne").foregroundStyle(.pink)
+                    Text("To kategoria dla raczej singli i jest ona dość mocno zboczona.")
+                    Spacer()
+
+                }
+                .font(.system(size: 25, weight: .bold))
+                .foregroundStyle(.white)
+                .padding(.horizontal)
                 
-                
+                Spacer()
             }
         }
+    }
+}
+
+// Komponent przycisku zamykania
+struct CloseButton: View {
+    var body: some View {
+        HStack {
+            NavigationLink(destination: ContentView().navigationBarBackButtonHidden(true)) {
+                IconButton(systemName: "xmark")
+            }
+            Spacer()
+        }
+        .padding()
     }
 }
 
@@ -129,101 +142,123 @@ struct settingsView: View {
     @AppStorage("isDarkModeEnabled") var isDarkModeEnabled: Bool = true
     @AppStorage("isTimerEnabled") var isTimerEnabled: Bool = false
     @AppStorage("selectedTime") var selectedTime: Int = 30
+    @AppStorage("selectedLanguage") var selectedLanguage: String = "Polish"
     
     var body: some View {
         NavigationStack {
             ZStack {
-                backgroundColor
-                    .ignoresSafeArea()
-                
-                ZStack(alignment: .topLeading) {
-                    NavigationLink(destination: ContentView().navigationBarBackButtonHidden(true)) {
-                        Image(systemName: "xmark")
-                            .font(.system(size: 30))
-                            .fontWeight(.heavy)
-                            .foregroundStyle(.white)
-                            .padding()
+                backgroundColor.ignoresSafeArea()
+                                
+                VStack {
+                                        
+                    // Pasek nagłówkowy z przyciskiem zamknięcia
+                    HStack {
+                        CloseButton()
+                        Text("Settings")
+                            .font(.title.bold())
+                            .foregroundColor(.white)
+                        Spacer()
+                            .ignoresSafeArea()
                     }
-                    VStack {
-                        Section(header: Text("TIMER SETTINGS").foregroundColor(.white)) {
-                            HStack {
-                                Image(systemName: "timer")
-                                    .foregroundColor(.red) // Ikona
-                                Toggle(isOn: $isTimerEnabled) {
-                                    Text("Enable Timer") // Przełącznik włączania licznika
+                    
+                    // Ustawienia aplikacji
+                    SettingsSection(title: "PREFERENCES") {
+                        SettingsRow(icon: "globe", text: "Language") {
+                            Menu(selectedLanguage) {
+                                ForEach(["Polish", "English", "French", "German"], id: \.self) { lang in
+                                    Button(lang) { selectedLanguage = lang }
                                 }
                             }
-                            if isTimerEnabled { // Jeśli timer jest włączony, pokaż menu wyboru czasu
-                                Menu("Select Time: \(selectedTime) seconds") {
-                                    Button("15 seconds") { selectedTime = 15 }
-                                    Button("30 seconds") { selectedTime = 30 }
-                                    Button("1 minute") { selectedTime = 60 }
-                                    Button("3 minutes") { selectedTime = 180 }
+                            .foregroundStyle(.white)
+                            .buttonStyle(.bordered)
+                        }
+                    }
+                    
+                    SettingsSection(title: "TIMER SETTINGS") {
+                        ToggleSetting(icon: "timer", text: "Enable Timer", isOn: $isTimerEnabled)
+                        
+                        if isTimerEnabled {
+                            SettingsRow(icon: "clock", text: "Time") {
+                                Menu("\(selectedTime) s") {
+                                    ForEach([15, 30, 60, 180], id: \.self) { time in
+                                        Button("\(time) s") { selectedTime = time }
+                                    }
                                 }
                                 .foregroundStyle(.white)
-                                .padding()
+                                .buttonStyle(.bordered)
                             }
                         }
                     }
-                    .font(.system(size: 25))
-                    .fontWeight(.bold)
-                    .foregroundStyle(.white)
-                    .padding()
+                    
+                    Spacer()
                 }
+                .padding(.horizontal)
             }
         }
     }
 }
 
-
-
-extension AnyTransition {
-    static var flipFromRight: AnyTransition {
-        AnyTransition.asymmetric(
-            insertion: .modifier(
-                active: FlipEffect(angle: -90),
-                identity: FlipEffect(angle: 0)
-            ),
-            removal: .modifier(
-                active: FlipEffect(angle: 0),
-                identity: FlipEffect(angle: 90)
-            )
-        )
+// Komponent sekcji ustawień
+struct SettingsSection<Content: View>: View {
+    let title: String
+    let content: Content
+    
+    init(title: String, @ViewBuilder content: () -> Content) {
+        self.title = title
+        self.content = content()
     }
     
-    static var flipFromLeft: AnyTransition {
-        AnyTransition.asymmetric(
-            insertion: .modifier(
-                active: FlipEffect(angle: 90),
-                identity: FlipEffect(angle: 0)
-            ),
-            removal: .modifier(
-                active: FlipEffect(angle: 0),
-                identity: FlipEffect(angle: -90)
-            )
-        )
-    }
-}
-
-struct FlipEffect: ViewModifier {
-    let angle: Double
-    
-    func body(content: Content) -> some View {
-        content
-            .rotation3DEffect(
-                .degrees(angle),
-                axis: (x: 0, y: 1, z: 0),
-                perspective: 0.5
-            )
-    }
-}
-
-struct LineBreak: View {
     var body: some View {
-        Spacer().frame(height: 10) // Odstęp w wysokości 10 punktów
+        VStack(alignment: .leading, spacing: 10) {
+            Text(title)
+                .foregroundStyle(.white)
+                .font(.headline)
+            content
+        }
+        .padding(.vertical, 10)
     }
 }
 
-#Preview {
-    ContentView()
+// Komponent pojedynczego wiersza w ustawieniach
+struct SettingsRow<Content: View>: View {
+    let icon: String
+    let text: String
+    let content: Content
+    
+    init(icon: String, text: String, @ViewBuilder content: () -> Content) {
+        self.icon = icon
+        self.text = text
+        self.content = content()
+    }
+    
+    var body: some View {
+        HStack {
+            Image(systemName: icon)
+                .foregroundColor(.blue)
+            Text(text)
+            Spacer()
+            content
+        }
+        .font(.system(size: 20, weight: .bold))
+        .foregroundStyle(.white)
+    }
+}
+
+// Komponent dla przełączników (Toggle)
+struct ToggleSetting: View {
+    let icon: String
+    let text: String
+    @Binding var isOn: Bool
+    
+    var body: some View {
+        HStack {
+            Image(systemName: icon)
+                .foregroundColor(.red)
+            Toggle(isOn: $isOn) {
+                Text(text)
+            }
+        }
+        .font(.system(size: 20, weight: .bold))
+        .foregroundStyle(.white)
+    }
 }

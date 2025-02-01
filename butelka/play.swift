@@ -10,26 +10,21 @@ struct GameData: Codable {
     let categories: [Category]
 }
 
-// Funkcja wczytująca dane z pliku JSON
+// Wczytywanie danych JSON
 func loadGameData() -> GameData? {
-    if let url = Bundle.main.url(forResource: "questions", withExtension: "json") {
-        if let data = try? Data(contentsOf: url) {
-            let decoder = JSONDecoder()
-            return try? decoder.decode(GameData.self, from: data)
-        }
+    guard let url = Bundle.main.url(forResource: "questions", withExtension: "json"),
+          let data = try? Data(contentsOf: url),
+          let decodedData = try? JSONDecoder().decode(GameData.self, from: data) else {
+        return nil
     }
-    return nil
+    return decodedData
 }
 
-// Funkcje losujące pytania i wyzwania
-func getRandomQuestion(from category: Category) -> String {
-    return category.questions.randomElement() ?? "Brak pytań"
+func getRandomElement(from array: [String]) -> String {
+    array.randomElement() ?? "Brak danych"
 }
 
-func getRandomChallenge(from category: Category) -> String {
-    return category.challenges.randomElement() ?? "Brak wyzwań"
-}
-
+// Ekran gry
 struct PlayView: View {
     let selectedOption: String
     let categories: [Category]
@@ -37,60 +32,25 @@ struct PlayView: View {
     var body: some View {
         NavigationStack {
             ZStack {
-                backgroundColor
-                    .ignoresSafeArea()
+                backgroundColor.ignoresSafeArea()
                 
-                ZStack(alignment: .topLeading) {
-                    NavigationLink(destination: ContentView().navigationBarBackButtonHidden(true)) {
-                        Image(systemName: "xmark")
-                            .font(.system(size: 30))
-                            .fontWeight(.heavy)
-                            .foregroundStyle(.white)
-                            .padding()
-                    }
-                    
-                    VStack {
-                        Spacer()
-                        
-                        HStack {
-                            Text(selectedOption)
-                        }
-                        .font(.system(size: 45))
-                        .fontWeight(.heavy)
+                VStack {
+                    CloseButton()
+                    Spacer()
+                    Text(selectedOption)
+                        .font(.system(size: 45, weight: .heavy))
                         .foregroundStyle(.white)
-                        
-                        Spacer()
-                        
-                        VStack(spacing: 16) {
-                            if let selectedCategory = categories.first(where: { $0.name == selectedOption }) {
-                                NavigationLink(destination: QuestView(themeColor: .pink, content: getRandomQuestion(from: selectedCategory), potemToZmienie: selectedOption).navigationBarBackButtonHidden(true)) {
-                                    Text("Pytanie")
-                                        .font(.system(size: 50))
-                                        .fontWeight(.heavy)
-                                        .foregroundColor(.white)
-                                        .frame(maxWidth: .infinity)
-                                        .frame(width: 330, height: 245)
-                                        .padding()
-                                        .background(.pink)
-                                        .cornerRadius(20)
-                                }
-                                
-                                NavigationLink(destination: QuestView(themeColor: .blue, content: getRandomChallenge(from: selectedCategory), potemToZmienie: selectedOption).navigationBarBackButtonHidden(true)) {
-                                    Text("Wyzwanie")
-                                        .font(.system(size: 50))
-                                        .fontWeight(.heavy)
-                                        .foregroundColor(.white)
-                                        .frame(maxWidth: .infinity)
-                                        .frame(width: 330, height: 250)
-                                        .padding()
-                                        .background(.blue)
-                                        .cornerRadius(20)
-                                }
-                            } else {
-                                Text("Brak danych dla tej kategorii")
-                                    .foregroundColor(.white)
-                            }
+                    Spacer()
+                    
+                    if let category = categories.first(where: { $0.name == selectedOption }) {
+                        TruthOrDareButton(title: "Pytanie", color: .pink) {
+                            TruthOrDarePlay(themeColor: .pink, content: getRandomElement(from: category.questions), category: selectedOption)
                         }
+                        TruthOrDareButton(title: "Wyzwanie", color: .blue) {
+                            TruthOrDarePlay(themeColor: .blue, content: getRandomElement(from: category.challenges), category: selectedOption)
+                        }
+                    } else {
+                        Text("Brak danych dla tej kategorii").foregroundColor(.white)
                     }
                 }
             }
@@ -98,79 +58,84 @@ struct PlayView: View {
     }
 }
 
-struct QuestView: View {
+// Widok pytania lub wyzwania
+struct TruthOrDarePlay: View {
+    
     let themeColor: Color
     let content: String
-    let potemToZmienie: String
+    let category: String
 
     @AppStorage("selectedTime") var selectedTime: Int = 30
-    @State private var timeRemaining: Int = 0
-    @State private var timerRunning: Bool = false
     @AppStorage("isTimerEnabled") var isTimerEnabled: Bool = false
-
-    @State private var fixedContent: String?  // Nowa zmienna do przechowywania treści pytania/wyzwania
+    
+    @State private var timeRemaining: Int = 0
+    @State private var timer: Timer?
 
     var body: some View {
         NavigationStack {
             ZStack {
-                themeColor
-                    .ignoresSafeArea()
-
+                themeColor.ignoresSafeArea()
+                
                 VStack(spacing: 20) {
                     if isTimerEnabled {
-                        Text("\(timeRemaining) s")
-                            .font(.title2)
-                            .fontWeight(.bold)
+                        Text("Pozostały czas: \(timeRemaining) s")
+                            .font(.title2.bold())
                             .foregroundColor(.white)
                     }
-
-                    Text(fixedContent ?? content) // Używamy zapamiętanej wartości
-                        .font(.largeTitle)
-                        .fontWeight(.bold)
+                    Text(content)
+                        .font(.largeTitle.bold())
                         .foregroundColor(.white)
                         .padding()
-
-                    NavigationLink(destination: PlayView(selectedOption: potemToZmienie, categories: loadGameData()?.categories ?? []).navigationBarBackButtonHidden(true)) {
+                    NavigationLink(destination: PlayView(selectedOption: category, categories: loadGameData()?.categories ?? []).navigationBarBackButtonHidden(true)) {
                         Text("Next")
-                            .foregroundStyle(.white)
-                            .font(.title)
-                            .fontWeight(.heavy)
+                            .font(.title.bold())
                             .frame(width: 120, height: 70)
-                            .background(Color(red: 66 / 255, green: 66 / 255, blue: 66 / 255))
+                            .background(backgroundColor)
+                            .foregroundColor(.white)
                             .cornerRadius(30)
                     }
                 }
             }
             .onAppear {
-                if fixedContent == nil { // Zapisujemy treść tylko raz!
-                    fixedContent = content
-                }
                 timeRemaining = selectedTime
-                startTimer()
+                if isTimerEnabled {
+                    startTimer()
+                }
             }
             .onDisappear {
-                stopTimer()
+                timer?.invalidate()
             }
         }
     }
 
     private func startTimer() {
-        timerRunning = true
-        Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { timer in
+        timer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { _ in
             if timeRemaining > 0 {
                 timeRemaining -= 1
-            } else {
-                timer.invalidate()
-                timerRunning = false
             }
         }
     }
-
-    private func stopTimer() {
-        timerRunning = false
-    }
 }
 
-#Preview {
-    ContentView()
+
+
+// Komponent przycisku kategorii
+struct TruthOrDareButton<Destination: View>: View {
+    let title: String
+    let color: Color
+    let destination: () -> Destination
+    
+    var body: some View {
+        NavigationLink(destination: destination().navigationBarBackButtonHidden(true)) {
+            Text(title)
+                .font(.system(size: 50))
+                .fontWeight(.heavy)
+                .foregroundColor(.white)
+                .frame(maxWidth: .infinity)
+                .frame(width: 330, height: 250)
+                .padding()
+                .background(color)
+                .cornerRadius(20)
+        }
+    }
 }
